@@ -110,3 +110,55 @@ func InsertPdf(email string, pdfFile multipart.File) error {
 	log.Println("Inserted a PDF")
 	return nil
 }
+
+func GetPdf(email string) ([]byte, error) {
+	conn, err := DB_Connect()
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	query := `SELECT file FROM files WHERE email = $1`
+	row := conn.QueryRow(query, email)
+
+	var pdfData []byte
+	err = row.Scan(&pdfData)
+	if err != nil {
+		return nil, err
+	}
+
+	return pdfData, nil
+}
+
+func GetAllUserPdf(email string) ([][]byte, error) {
+	conn, err := DB_Connect()
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	query := `SELECT file FROM files WHERE email = $1`
+	rows, err := conn.Query(query, email)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var pdfDataList [][]byte
+
+	for rows.Next() {
+		var pdfData []byte
+		err = rows.Scan(&pdfData)
+		if err != nil {
+			return nil, err
+		}
+
+		pdfDataList = append(pdfDataList, pdfData)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return pdfDataList, nil
+}

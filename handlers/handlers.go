@@ -79,7 +79,7 @@ func Authenticate(w http.ResponseWriter, r *http.Request) {
 	//w.Write([]byte(userEmail))
 
 	fmt.Println("User Authenticated")
-	http.Redirect(w,r,"/pdf",http.StatusSeeOther)
+	http.Redirect(w,r,"/upload-pdf",http.StatusSeeOther)
 }
 
 func StorePDF(w http.ResponseWriter,r* http.Request){
@@ -112,3 +112,58 @@ func StorePDF(w http.ResponseWriter,r* http.Request){
 		//http.Redirect(w, r, "/success", http.StatusFound)
 		w.Write([]byte("Pdf File Submitted successfully"))
 }
+
+func GetPDF(w http.ResponseWriter,r* http.Request){
+	session, _ := store.Get(r, "session-name")
+	email := session.Values["email"].(string)
+	if email == "" {
+		http.Error(w, "Email parameter is missing", http.StatusBadRequest)
+		return
+	}
+	
+	pdfData, err := database.GetPdf(email)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Set the appropriate headers for PDF file response
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", "inline; filename=example.pdf")
+
+	// Write the PDF data to the response writer
+	_, err = w.Write(pdfData)
+	if err != nil {
+		log.Println("Failed to write PDF data to response:", err)
+	}
+
+}
+
+func GetAllPdf(w http.ResponseWriter, r* http.Request) {
+	session, _ := store.Get(r, "session-name")
+	email := session.Values["email"].(string)
+	if email == "" {
+		http.Error(w, "Email parameter is missing", http.StatusBadRequest)
+		return
+	}
+
+	pdfDataList, err := database.GetAllUserPdf(email)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Set the appropriate headers for PDF file response
+		w.Header().Set("Content-Type", "application/pdf")
+		w.Header().Set("Content-Disposition", "inline")
+
+		for _, pdfData := range pdfDataList {
+			// Write each PDF data to the response writer
+			_, err = w.Write(pdfData)
+			if err != nil {
+				log.Println("Failed to write PDF data to response:", err)
+			}
+		}
+		fmt.Println("Total number of pdf is ",len(pdfDataList))
+	} 
+
