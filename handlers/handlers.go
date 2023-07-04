@@ -51,6 +51,10 @@ func Authenticate(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	if userEmail==""{
+		http.Error(w, "User not found", http.StatusUnauthorized)
+		return;
+	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(userPassword), []byte(password))
 	fmt.Println("UserPassword is ", userPassword)
@@ -67,4 +71,3 @@ func Authenticate(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("User Authenticated")
 	// Continue with further actions or return a success response
 }
-
