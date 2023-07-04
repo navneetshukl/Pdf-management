@@ -3,8 +3,11 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"os"
+
 	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/joho/godotenv"
@@ -40,17 +43,17 @@ func DB_Connect() (*sql.DB, error) {
 
 }
 
-func InsertUser(name,email,password string){
-	conn,err:=DB_Connect()
+func InsertUser(name, email, password string) {
+	conn, err := DB_Connect()
 	defer conn.Close()
-	if err!=nil{
+	if err != nil {
 		panic(err)
 	}
-	query:=`insert into users(name,email,password) values($1,$2,$3)`
+	query := `insert into users(name,email,password) values($1,$2,$3)`
 
-	_,err =conn.Exec(query,name,email,password)
+	_, err = conn.Exec(query, name, email, password)
 
-	if err!=nil{
+	if err != nil {
 		log.Fatal(err)
 	}
 
@@ -82,4 +85,28 @@ func GetUser(email string) (string, string, error) {
 		}
 	}
 	return userEmail, userPassword, nil
+}
+
+func InsertPdf(email string, pdfFile multipart.File) error {
+	conn, err := DB_Connect()
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	// Read the PDF file data
+	pdfData, err := ioutil.ReadAll(pdfFile)
+	if err != nil {
+		return err
+	}
+
+	query := `INSERT INTO files (email, file) VALUES ($1, $2)`
+
+	_, err = conn.Exec(query, email, pdfData)
+	if err != nil {
+		return err
+	}
+
+	log.Println("Inserted a PDF")
+	return nil
 }
