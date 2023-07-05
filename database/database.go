@@ -16,6 +16,7 @@ import (
 type PDF struct {
 	Title string
 	Data  []byte
+	Share string
 }
 
 func DB_Connect() (*sql.DB, error) {
@@ -92,7 +93,7 @@ func GetUser(email string) (string, string, error) {
 	return userEmail, userPassword, nil
 }
 
-func InsertPdf(email string, pdfFile multipart.File, title string) error {
+func InsertPdf(email string, pdfFile multipart.File, title string,share string) error {
 	conn, err := DB_Connect()
 	if err != nil {
 		return err
@@ -105,9 +106,9 @@ func InsertPdf(email string, pdfFile multipart.File, title string) error {
 		return err
 	}
 
-	query := `INSERT INTO files (email, file, title) VALUES ($1, $2, $3)`
+	query := `INSERT INTO files (email, file, title, share) VALUES ($1, $2, $3, $4)`
 
-	_, err = conn.Exec(query, email, pdfData, title)
+	_, err = conn.Exec(query, email, pdfData, title, share)
 	if err != nil {
 		return err
 	}
@@ -116,15 +117,15 @@ func InsertPdf(email string, pdfFile multipart.File, title string) error {
 	return nil
 }
 
-func GetPdf(email string) ([]byte, error) {
+func GetPdf(share string) ([]byte, error) {
 	conn, err := DB_Connect()
 	if err != nil {
 		return nil, err
 	}
 	defer conn.Close()
 
-	query := `SELECT file FROM files WHERE email = $1`
-	row := conn.QueryRow(query, email)
+	query := `SELECT file FROM files WHERE share = $1`
+	row := conn.QueryRow(query, share)
 
 	var pdfData []byte
 	err = row.Scan(&pdfData)
@@ -143,7 +144,7 @@ func GetAllUserPdf(email string) ([]PDF, error) {
 	}
 	defer conn.Close()
 
-	query := `SELECT title, file FROM files WHERE email = $1`
+	query := `SELECT title, file, share FROM files WHERE email = $1`
 	rows, err := conn.Query(query, email)
 	if err != nil {
 		return nil, err
@@ -154,7 +155,7 @@ func GetAllUserPdf(email string) ([]PDF, error) {
 
 	for rows.Next() {
 		var pdf PDF
-		err = rows.Scan(&pdf.Title, &pdf.Data)
+		err = rows.Scan(&pdf.Title, &pdf.Data, &pdf.Share)
 		if err != nil {
 			return nil, err
 		}
