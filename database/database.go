@@ -13,6 +13,11 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type PDF struct {
+	Title string
+	Data  []byte
+}
+
 func DB_Connect() (*sql.DB, error) {
 	err := godotenv.Load()
 	if err != nil {
@@ -87,7 +92,7 @@ func GetUser(email string) (string, string, error) {
 	return userEmail, userPassword, nil
 }
 
-func InsertPdf(email string, pdfFile multipart.File) error {
+func InsertPdf(email string, pdfFile multipart.File, title string) error {
 	conn, err := DB_Connect()
 	if err != nil {
 		return err
@@ -100,9 +105,9 @@ func InsertPdf(email string, pdfFile multipart.File) error {
 		return err
 	}
 
-	query := `INSERT INTO files (email, file) VALUES ($1, $2)`
+	query := `INSERT INTO files (email, file, title) VALUES ($1, $2, $3)`
 
-	_, err = conn.Exec(query, email, pdfData)
+	_, err = conn.Exec(query, email, pdfData, title)
 	if err != nil {
 		return err
 	}
@@ -130,35 +135,36 @@ func GetPdf(email string) ([]byte, error) {
 	return pdfData, nil
 }
 
-func GetAllUserPdf(email string) ([][]byte, error) {
+
+func GetAllUserPdf(email string) ([]PDF, error) {
 	conn, err := DB_Connect()
 	if err != nil {
 		return nil, err
 	}
 	defer conn.Close()
 
-	query := `SELECT file FROM files WHERE email = $1`
+	query := `SELECT title, file FROM files WHERE email = $1`
 	rows, err := conn.Query(query, email)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var pdfDataList [][]byte
+	var pdfList []PDF
 
 	for rows.Next() {
-		var pdfData []byte
-		err = rows.Scan(&pdfData)
+		var pdf PDF
+		err = rows.Scan(&pdf.Title, &pdf.Data)
 		if err != nil {
 			return nil, err
 		}
 
-		pdfDataList = append(pdfDataList, pdfData)
+		pdfList = append(pdfList, pdf)
 	}
 
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 
-	return pdfDataList, nil
+	return pdfList, nil
 }

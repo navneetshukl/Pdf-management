@@ -17,6 +17,7 @@ func main() {
 	mux.Get("/upload-pdf",handlers.Pdf)
 	mux.Post("/upload-pdf",handlers.StorePDF)
 	mux.Get("/get-pdf",handlers.GetAllPdf)
+	mux.Post("/pdf",handlers.HandlePDF)
 
 	err := http.ListenAndServe(":8080", mux)
 	if err != nil {
