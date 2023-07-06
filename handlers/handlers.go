@@ -38,6 +38,14 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	name = r.FormValue("name")
 	email = r.FormValue("email")
 	password = r.FormValue("password")
+	
+	user:=database.CheckUser(email)
+	fmt.Println("User is  ",user)
+	if user==true{
+		//http.Redirect(w,r,"/",http.StatusSeeOther)
+		render.RenderTemplate(w,"checkuser.page.tmpl",&models.TemplateData{})
+		return
+	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -61,14 +69,16 @@ func Authenticate(w http.ResponseWriter, r *http.Request) {
 	userEmail, userPassword, err = database.GetUser(email)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "User not found", http.StatusUnauthorized)
+			//http.Error(w, "User not found", http.StatusUnauthorized)
+			render.RenderTemplate(w,"usernotfound.page.tmpl",&models.TemplateData{})
 		} else {
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 		}
 		return
 	}
 	if userEmail == "" {
-		http.Error(w, "User not found", http.StatusUnauthorized)
+		//http.Error(w, "User not found", http.StatusUnauthorized)
+		render.RenderTemplate(w,"usernotfound.page.tmpl",&models.TemplateData{})
 		return
 	}
 
@@ -78,7 +88,8 @@ func Authenticate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// Passwords don't match
 		fmt.Println("Password Error ", err)
-		http.Error(w, "Invalid password", http.StatusUnauthorized)
+		//http.Error(w, "Invalid password", http.StatusUnauthorized)
+		render.RenderTemplate(w,"invalidpassword.page.tmpl",&models.TemplateData{})
 		return
 	}
 

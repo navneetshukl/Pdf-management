@@ -93,6 +93,37 @@ func GetUser(email string) (string, string, error) {
 	return userEmail, userPassword, nil
 }
 
+func CheckUser(email string) bool {
+	conn, err := DB_Connect()
+	defer conn.Close()
+	if err != nil {
+		log.Println("Failed to connect to the database:", err)
+		return false
+	}
+	
+
+	// Prepare the SQL statement
+	query := `SELECT email FROM users WHERE email = $1`
+	rows, err := conn.Query(query, email)
+	if err != nil {
+		log.Fatalf("Error executing query: %v", err)
+		return false
+	}
+	defer rows.Close()
+
+	// Execute the query and retrieve the result
+	var count int
+	for rows.Next() {
+		err := rows.Scan(&count)
+		if err != nil {
+			log.Fatalf("Error scanning row: %v", err)
+			return false
+		}
+	}
+	return count>0
+}
+
+
 func InsertPdf(email string, pdfFile multipart.File, title string,share string) error {
 	conn, err := DB_Connect()
 	if err != nil {
