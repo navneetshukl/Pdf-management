@@ -32,6 +32,7 @@ func Options(w http.ResponseWriter, r *http.Request) {
 	render.RenderTemplate(w, "option.page.tmpl", &models.TemplateData{})
 }
 
+// First time Signup for the user
 func Signup(w http.ResponseWriter, r *http.Request) {
 	var name, email, password string
 	name = r.FormValue("name")
@@ -43,8 +44,10 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("Error in generating the Hashed Password")
 	}
 	database.InsertUser(name, email, string(hashedPassword))
+	http.Redirect(w,r,"/options",http.StatusSeeOther)
 }
 
+// For Signin the user
 func Authenticate(w http.ResponseWriter, r *http.Request) {
 	var email, password string
 	email = r.FormValue("email")
@@ -89,10 +92,11 @@ func Authenticate(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/options", http.StatusSeeOther)
 }
 
+//This will store the pdf in out database
 func StorePDF(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session-name")
 	email := session.Values["email"].(string)
-	w.Write([]byte("Email from the session is " + email))
+	//w.Write([]byte("Email from the session is " + email))
 
 	err := r.ParseMultipartForm(32 << 20) // Set max size for uploaded files
 	if err != nil {
@@ -120,9 +124,11 @@ func StorePDF(w http.ResponseWriter, r *http.Request) {
 
 	// Redirect or respond with a success message
 	//http.Redirect(w, r, "/success", http.StatusFound)
-	w.Write([]byte("Pdf File Submitted successfully"))
+	//w.Write([]byte("Pdf File Submitted successfully"))
+	http.Redirect(w,r,"/options",http.StatusSeeOther)
 }
 
+// Get the single pdf from aur database
 func GetPDF(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session-name")
 	email := session.Values["email"].(string)
@@ -215,6 +221,21 @@ func GetAllPdf(w http.ResponseWriter, r *http.Request) {
 				font-size: 14px;
 				color: #666;
 			}
+			.back-button {
+				display: inline-block;
+				padding: 10px 15px;
+				border-radius: 4px;
+				border: none;
+				background-color: #ccc;
+				color: #fff;
+				font-size: 16px;
+				cursor: pointer;
+				margin-top: 10px;
+			}
+	
+			.back-button:hover {
+				background-color: #999;
+			}
 		</style>
 	</head>
 	<body>
@@ -227,14 +248,25 @@ func GetAllPdf(w http.ResponseWriter, r *http.Request) {
 							<input type="hidden" name="pdfData" value="{{base64Encode $pdfData.Data}}">
 							<button class="pdf-button" type="submit">{{$pdfData.Title}}</button>
 						</form>
-						<span class="pdf-share">Shareable Link: {{$pdfData.Share}}</span>
+						<span class="pdf-share"><b>Shareable Link:</b> {{$pdfData.Share}}</span>
 					</li>
 				{{end}}
 			</ul>
+
+			<button class="back-button" onclick="goBack()">Back </button>
+
 		</div>
+		<script>
+		function goBack() {
+			window.location.href = "/options";
+		}
+	</script>
 	</body>
 	</html>
 `
+
+
+
 
 	// Create a template function for base64 encoding
 	funcMap := template.FuncMap{
@@ -281,10 +313,11 @@ func HandlePDF(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("Failed to write PDF data to response:", err)
 	}
-	fmt.Println("PDF Data is ", []byte(pdfData))
+	//fmt.Println("PDF Data is ", []byte(pdfData))
 
 }
 
+// Get the pdf by their sharable link
 func GetLink(w http.ResponseWriter, r *http.Request) {
 	//link := chi.URLParam(r, "link")
 	queryParams:=r.URL.Query()
@@ -297,6 +330,7 @@ func GetLink(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Email parameter is missing", http.StatusBadRequest)
 		return
 	}
+	//http.Redirect(w,r,"/",http.StatusSeeOther)
 	share = "localhost:8080/single-pdf?link=" + share
 
 	pdfData, err := database.GetPdf(share)
