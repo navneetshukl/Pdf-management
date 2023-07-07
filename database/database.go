@@ -49,6 +49,7 @@ func DB_Connect() (*sql.DB, error) {
 
 }
 
+// This function insert the user in our users table during the time of signup process
 func InsertUser(name, email, password string) {
 	conn, err := DB_Connect()
 	defer conn.Close()
@@ -66,6 +67,7 @@ func InsertUser(name, email, password string) {
 	log.Println("Inserted a User")
 }
 
+// This function get the users password during the time of signin
 func GetUser(email string) (string, string, error) {
 	conn, err := DB_Connect()
 	defer conn.Close()
@@ -93,6 +95,7 @@ func GetUser(email string) (string, string, error) {
 	return userEmail, userPassword, nil
 }
 
+//This function checks if the user is already existed in our database during the time of signup
 func CheckUser(email string) bool {
 	conn, err := DB_Connect()
 	defer conn.Close()
@@ -123,7 +126,7 @@ func CheckUser(email string) bool {
 	return count>0
 }
 
-
+//This function insert the pdf in files table of our database
 func InsertPdf(email string, pdfFile multipart.File, title string,share string) error {
 	conn, err := DB_Connect()
 	if err != nil {
@@ -148,6 +151,7 @@ func InsertPdf(email string, pdfFile multipart.File, title string,share string) 
 	return nil
 }
 
+//this function get the pdf form the files table 
 func GetPdf(share string) ([]byte, error) {
 	conn, err := DB_Connect()
 	if err != nil {
@@ -167,7 +171,7 @@ func GetPdf(share string) ([]byte, error) {
 	return pdfData, nil
 }
 
-
+//This function gets all the pdf of the specific user from our files table
 func GetAllUserPdf(email string) ([]PDF, error) {
 	conn, err := DB_Connect()
 	if err != nil {

@@ -32,7 +32,7 @@ func Options(w http.ResponseWriter, r *http.Request) {
 	render.RenderTemplate(w, "option.page.tmpl", &models.TemplateData{})
 }
 
-// First time Signup for the user
+// This Function handles the first time signup for the user
 func Signup(w http.ResponseWriter, r *http.Request) {
 	var name, email, password string
 	name = r.FormValue("name")
@@ -55,7 +55,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w,r,"/options",http.StatusSeeOther)
 }
 
-// For Signin the user
+// This function handles the Signin for the existing user.
 func Authenticate(w http.ResponseWriter, r *http.Request) {
 	var email, password string
 	email = r.FormValue("email")
@@ -103,7 +103,7 @@ func Authenticate(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/options", http.StatusSeeOther)
 }
 
-//This will store the pdf in out database
+//This function will store the pdf in our database
 func StorePDF(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session-name")
 	email := session.Values["email"].(string)
@@ -133,13 +133,11 @@ func StorePDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Redirect or respond with a success message
-	//http.Redirect(w, r, "/success", http.StatusFound)
 	//w.Write([]byte("Pdf File Submitted successfully"))
 	http.Redirect(w,r,"/options",http.StatusSeeOther)
 }
 
-// Get the single pdf from aur database
+// Get the single pdf of a user from aur database
 func GetPDF(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session-name")
 	email := session.Values["email"].(string)
@@ -166,7 +164,7 @@ func GetPDF(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// List of all pdf of the particular user
+// This function gets the  List of all pdf of the particular user
 func GetAllPdf(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session-name")
 	email := session.Values["email"].(string)
@@ -301,7 +299,7 @@ func GetAllPdf(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Get Pdf one by one of the particular user
+// this Get Pdf one by one of the particular user
 func HandlePDF(w http.ResponseWriter, r *http.Request) {
 	pdfData := r.FormValue("pdfData")
 	if pdfData == "" {
@@ -328,7 +326,7 @@ func HandlePDF(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// Get the pdf by their sharable link
+// This function Get the pdf by their sharable link
 func GetLink(w http.ResponseWriter, r *http.Request) {
 	//link := chi.URLParam(r, "link")
 	queryParams:=r.URL.Query()
