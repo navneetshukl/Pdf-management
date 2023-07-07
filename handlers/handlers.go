@@ -52,6 +52,9 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("Error in generating the Hashed Password")
 	}
 	database.InsertUser(name, email, string(hashedPassword))
+	session, _ := store.Get(r, "session-name")
+	session.Values["email"] = email
+	session.Save(r, w)
 	http.Redirect(w,r,"/options",http.StatusSeeOther)
 }
 
