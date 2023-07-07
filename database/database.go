@@ -103,7 +103,6 @@ func CheckUser(email string) bool {
 		log.Println("Failed to connect to the database:", err)
 		return false
 	}
-	
 
 	// Prepare the SQL statement
 	query := `SELECT email FROM users WHERE email = $1`
@@ -115,16 +114,20 @@ func CheckUser(email string) bool {
 	defer rows.Close()
 
 	// Execute the query and retrieve the result
-	var count int
+	var foundEmail string // Use string type for the email
+	count := 0
 	for rows.Next() {
-		err := rows.Scan(&count)
+		err := rows.Scan(&foundEmail) // Scan the email as a string
 		if err != nil {
 			log.Fatalf("Error scanning row: %v", err)
 			return false
 		}
+		count++
 	}
-	return count>0
+
+	return count > 0
 }
+
 
 //This function insert the pdf in files table of our database
 func InsertPdf(email string, pdfFile multipart.File, title string,share string) error {
